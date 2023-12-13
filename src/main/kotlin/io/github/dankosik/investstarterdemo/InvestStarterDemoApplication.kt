@@ -78,6 +78,18 @@ class DollarTradesHandler : CoroutineTradeHandler {
     }
 }
 
+/**
+ * Хендлеров может быть сколько угодно, все они будут обрабатываться параллельно.
+ * Если указанный тикер был хотя бы в одном из других хендлеров, то instrumentType можно не использовать.
+ * Новые запросы для получения тикера не будут исполняться
+ * */
+@HandleTrade(ticker = "SiZ3")
+class DollarTradesHandler2 : CoroutineTradeHandler {
+    override suspend fun handle(trade: Trade) {
+        println("DollarTradesHandler2 $trade")
+    }
+}
+
 /** обработка всех трейдов (опция beforeEachTradesHandler означает что выполнится этот handler перед всеми остальными) */
 @HandleAllTrades(beforeEachTradesHandler = true)
 class CommonBeforeEachTradesHandler : CoroutineTradeHandler {
