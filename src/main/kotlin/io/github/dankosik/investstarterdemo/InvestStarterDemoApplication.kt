@@ -71,7 +71,7 @@ fun main(args: Array<String>) {
  * Если вы используете ticker при старте приложения будет выполнен запрос на поиск instrumentUid по переданному тикеру.
  * instrumentType нужен лишь для того чтобы сделать это за меньшее количество запросов к api, и с целью уменьшит трату лимитов
  * */
-@HandleTrade(ticker = "SiZ3", instrumentType = InstrumentType.INSTRUMENT_TYPE_FUTURES)
+@HandleTrade(ticker = "SiH4", instrumentType = InstrumentType.INSTRUMENT_TYPE_FUTURES)
 class DollarTradesHandler : CoroutineTradeHandler {
     override suspend fun handle(trade: Trade) {
         println("DollarTradesHandler $trade")
@@ -83,7 +83,7 @@ class DollarTradesHandler : CoroutineTradeHandler {
  * Если указанный тикер был хотя бы в одном из других хендлеров, то instrumentType можно не использовать.
  * Новые запросы для получения тикера не будут исполняться
  * */
-@HandleTrade(ticker = "SiZ3")
+@HandleTrade(ticker = "SiH4")
 class DollarTradesHandler2 : CoroutineTradeHandler {
     override suspend fun handle(trade: Trade) {
         println("DollarTradesHandler2 $trade")
@@ -108,7 +108,7 @@ class CommonAfterEachTradesHandler : CoroutineTradeHandler {
 }
 
 /**обработка изменения последней цены для выбранного тикера/figi/instrumentUid */
-@HandleLastPrice(ticker = "SiZ3")
+@HandleLastPrice(ticker = "SiH4")
 class DollarLastPriceHandler : CoroutineLastPriceHandler {
 
     override suspend fun handle(lastPrice: LastPrice) {
@@ -135,7 +135,7 @@ class CommonAfterEachLastPriceHandler : CoroutineLastPriceHandler {
 }
 
 /**обработка изменений сткана для выбранного тикера/figi/instrumentUid */
-@HandleOrderBook(ticker = "SiZ3")
+@HandleOrderBook(ticker = "SiH4")
 class DollarOrderBookHandler : CoroutineOrderBookHandler {
 
     override suspend fun handle(orderBook: OrderBook) {
@@ -166,7 +166,7 @@ class CommonAfterEachOrderBookHandler : CoroutineOrderBookHandler {
 subscriptionInterval нужен чтобы выбрать интервал который будет обрабатывать этот хендлер
 */
 @HandleCandle(
-    ticker = "SiZ3",
+    ticker = "SiH4",
     subscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
 )
 class DollarCandleHandler : CoroutineCandleHandler {
@@ -207,7 +207,7 @@ class CommonAfterEachCandleHandler : CoroutineCandleHandler {
 }
 
 /**обработка изменений торгового статуса для выбранного тикера/figi/instrumentUid */
-@HandleTradingStatus(ticker = "SiZ3")
+@HandleTradingStatus(ticker = "SiH4")
 class DollarTradingStatusHandler : CoroutineTradingStatusHandler {
 
     override suspend fun handle(tradingStatus: TradingStatus) {
@@ -270,7 +270,7 @@ class AllPositionHandler : CoroutinePositionHandler {
 }
 
 /**обработка ордеров для конкретного аккаунта и конкретного тикера */
-@HandleOrder(account = "accountId", ticker = "SiZ3")
+@HandleOrder(account = "accountId", ticker = "SiH4")
 class OrderHandler : CoroutineOrderHandler {
 
     override suspend fun handle(orderTrades: OrderTrades) {

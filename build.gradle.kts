@@ -22,7 +22,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("io.github.dankosik:invest-api-java-sdk-starter:0.6.1-beta36")
+	implementation("io.github.dankosik:invest-api-java-sdk-starter:0.6.1-beta40")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
