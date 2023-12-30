@@ -24,25 +24,12 @@ import io.github.dankosik.starter.invest.contract.marketdata.trade.CoroutineTrad
 import io.github.dankosik.starter.invest.contract.operation.portfolio.CoroutinePortfolioHandler
 import io.github.dankosik.starter.invest.contract.operation.positions.CoroutinePositionHandler
 import io.github.dankosik.starter.invest.contract.orders.CoroutineOrderHandler
-import io.github.dankosik.starter.invest.processor.marketdata.CoroutineCandleStreamProcessorAdapter
-import io.github.dankosik.starter.invest.processor.marketdata.CoroutineLastPriceStreamProcessorAdapter
-import io.github.dankosik.starter.invest.processor.marketdata.CoroutineOrderBookStreamProcessorAdapter
-import io.github.dankosik.starter.invest.processor.marketdata.CoroutineTradeStreamProcessorAdapter
-import io.github.dankosik.starter.invest.processor.marketdata.CoroutineTradingStatusStreamProcessorAdapter
-import io.github.dankosik.starter.invest.processor.marketdata.common.CoroutineMarketDataStreamProcessorAdapter
-import io.github.dankosik.starter.invest.processor.marketdata.common.runAfterEachCandleHandler
-import io.github.dankosik.starter.invest.processor.marketdata.common.runBeforeEachOrderBookHandler
-import io.github.dankosik.starter.invest.processor.marketdata.common.runBeforeEachTradeHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runAfterEachCandleBookHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runAfterEachLastPriceBookHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runAfterEachOrderBookHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runAfterEachTradeHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runAfterEachTradingStatusHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runBeforeEachCandleHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runBeforeEachLastPriceHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runBeforeEachOrderBookHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runBeforeEachTradeHandler
-import io.github.dankosik.starter.invest.processor.marketdata.runBeforeEachTradingStatusHandler
+import io.github.dankosik.starter.invest.processor.marketdata.CandleStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.marketdata.LastPriceStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.marketdata.OrderBookStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.marketdata.TradeStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.marketdata.TradingStatusStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.marketdata.common.MarketDataStreamProcessorAdapterFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -50,7 +37,6 @@ import org.springframework.context.annotation.Configuration
 import ru.tinkoff.piapi.contract.v1.Candle
 import ru.tinkoff.piapi.contract.v1.InstrumentType
 import ru.tinkoff.piapi.contract.v1.LastPrice
-import ru.tinkoff.piapi.contract.v1.MarketDataResponse
 import ru.tinkoff.piapi.contract.v1.OrderBook
 import ru.tinkoff.piapi.contract.v1.OrderTrades
 import ru.tinkoff.piapi.contract.v1.PortfolioResponse
@@ -99,8 +85,10 @@ class CommonBeforeEachTradesHandler : CoroutineTradeHandler {
     }
 }
 
-/**обработка всех трейдов (опция afterEachTradesHandler означает что выполнится этот handler после всех остальных) */
-@HandleAllTrades(afterEachTradesHandler = true)
+/**обработка всех трейдов для указанных тикеров*/
+@HandleAllTrades(
+    tickers = ["SBER", "LKOH"],
+)
 class CommonAfterEachTradesHandler : CoroutineTradeHandler {
     override suspend fun handle(trade: Trade) {
         println("CommonAfterEachTradesHandler $trade")
@@ -126,7 +114,10 @@ class CommonBeforeEachLastPriceHandler : CoroutineLastPriceHandler {
 }
 
 /**обработка изменения последней цены всех инструментов (опция afterEachLastPriceHandler означает что выполнится этот handler после всех остальных) */
-@HandleAllLastPrices(afterEachLastPriceHandler = true)
+@HandleAllLastPrices(
+    figies = ["FUTBR0124000", "BBG004730N88"],
+    afterEachLastPriceHandler = true
+)
 class CommonAfterEachLastPriceHandler : CoroutineLastPriceHandler {
 
     override suspend fun handle(lastPrice: LastPrice) {
@@ -164,10 +155,11 @@ class CommonAfterEachOrderBookHandler : CoroutineOrderBookHandler {
 /**
 обработка свечи для выбранного тикера/figi/instrumentUid и выбранного интервала.
 subscriptionInterval нужен чтобы выбрать интервал который будет обрабатывать этот хендлер
-*/
+ */
 @HandleCandle(
     ticker = "SiH4",
-    subscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
+    subscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
+    waitClose = true
 )
 class DollarCandleHandler : CoroutineCandleHandler {
 
@@ -179,7 +171,7 @@ class DollarCandleHandler : CoroutineCandleHandler {
 /**
 обработка всех свеч выбранного интервала (опция beforeEachCandleHandler означает что выполнится этот handler перед всеми остальными)
 subscriptionInterval нужен чтобы выбрать интервал который будет обрабатывать этот хендлер
-*/
+ */
 @HandleAllCandles(
     beforeEachCandleHandler = true,
     subscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
@@ -192,11 +184,11 @@ class CommonBeforeEachCandleHandler : CoroutineCandleHandler {
 }
 
 /**
-обработка всех свеч выбранного интервала (опция afterEachCandleHandler означает что выполнится этот handler после всех остальных)
+обработка всех свеч выбранного интервала
 subscriptionInterval нужен чтобы выбрать интервал который будет обрабатывать этот хендлер
-*/
+ */
 @HandleAllCandles(
-    afterEachCandleHandler = true,
+    tickers = ["CRH4", "BRF4", "SBER", "LKOH"],
     subscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
 )
 class CommonAfterEachCandleHandler : CoroutineCandleHandler {
@@ -295,50 +287,53 @@ class Configuration {
 
     /**Можно обрабатывать все события marketData */
     @Bean
-    fun coroutineMarketDataStreamProcessorAdapter(): CoroutineMarketDataStreamProcessorAdapter =
-        CoroutineMarketDataStreamProcessorAdapter { marketDataResponse: MarketDataResponse ->
-            println("CoroutineMarketDataStreamProcessorAdapter $marketDataResponse")
-        }.runBeforeEachTradeHandler()
-            .runBeforeEachOrderBookHandler()
-            .runAfterEachCandleHandler()
+    fun coroutineMarketDataStreamProcessorAdapter() = MarketDataStreamProcessorAdapterFactory
+        .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+//        .withFigies(listOf("BBG004730N88")) можно использовать вместо withTickers
+//        .withInstrumentUids(listOf("e6123145-9665-43e0-8413-cd61b8aa9b13")) можно использовать вместо withTickers
+//        .runAfterEachTradeHandler(true)  опционально
+//        .runBeforeEachCandleHandler(true) опционально
+//        .runAfterEachLastPriceHandler(true) опционально
+//        .runBeforeEachOrderBookHandler(true) опционально
+        .createCoroutineHandler { println("CoroutineMarketDataStreamProcessorAdapter: $it") }
 
     /**Аналог HandleAllLastPrice */
     @Bean
-    fun coroutineLastPriceStreamProcessorAdapter(): CoroutineLastPriceStreamProcessorAdapter =
-        CoroutineLastPriceStreamProcessorAdapter { lastPrice: LastPrice ->
-            println("coroutineLastPriceStreamProcessorAdapter $lastPrice")
-        }.runBeforeEachLastPriceHandler()
-            .runAfterEachLastPriceBookHandler()
+    fun coroutineLastPriceStreamProcessorAdapter() =
+        LastPriceStreamProcessorAdapterFactory
+//            .runAfterEachLastPriceHandler(true) опционально
+//            .runBeforeEachLastPriceHandler(true) опционально
+            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .createCoroutineHandler { println("LastPriceStreamProcessorAdapterFactory: $it") }
 
     /**Аналог HandleAllTrades */
     @Bean
-    fun coroutineTradeStreamProcessorAdapter(): CoroutineTradeStreamProcessorAdapter =
-        CoroutineTradeStreamProcessorAdapter { trade: Trade ->
-            println("CoroutineTradeStreamProcessorAdapter $trade")
-        }.runBeforeEachTradeHandler()
-            .runAfterEachTradeHandler()
+    fun coroutineTradeStreamProcessorAdapter() =
+        TradeStreamProcessorAdapterFactory
+            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .createCoroutineHandler { println("CoroutineTradeStreamProcessorAdapter $it") }
 
     /**Аналог HandleAllTradingStatuses */
     @Bean
-    fun coroutineTradingStatusStreamProcessorAdapter(): CoroutineTradingStatusStreamProcessorAdapter =
-        CoroutineTradingStatusStreamProcessorAdapter { tradingStatus: TradingStatus ->
-            println("CoroutineTradingStatusStreamProcessorAdapter $tradingStatus")
-        }.runBeforeEachTradingStatusHandler()
-            .runAfterEachTradingStatusHandler()
+    fun coroutineTradingStatusStreamProcessorAdapter() =
+        TradingStatusStreamProcessorAdapterFactory
+            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .createCoroutineHandler { println("coroutineTradingStatusStreamProcessorAdapter $it") }
 
     /**Аналог HandleAllCandles */
     @Bean
-    fun coroutineCandleStreamProcessorAdapter(): CoroutineCandleStreamProcessorAdapter =
-        CoroutineCandleStreamProcessorAdapter { candle: Candle ->
-            println("CoroutineCandleStreamProcessorAdapter $candle")
-        }.runBeforeEachCandleHandler()
-            .runAfterEachCandleBookHandler()
+    fun coroutineCandleStreamProcessorAdapter() =
+        CandleStreamProcessorAdapterFactory
+            .withSubscriptionInterval(SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE)
+            .waitClose(true)
+            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .createCoroutineHandler { println("CoroutineCandleStreamProcessorAdapter $it") }
 
     /**Аналог HandleAllOrderBooks */
     @Bean
-    fun coroutineOrderBookStreamProcessorAdapter(): CoroutineOrderBookStreamProcessorAdapter =
-        CoroutineOrderBookStreamProcessorAdapter { orderBook: OrderBook ->
-            println("CoroutineOrderBookStreamProcessorAdapter $orderBook")
-        }.runAfterEachOrderBookHandler()
-            .runBeforeEachOrderBookHandler()
+    fun coroutineOrderBookStreamProcessorAdapter() =
+        OrderBookStreamProcessorAdapterFactory
+            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .createCoroutineHandler { println("CoroutineOrderBookStreamProcessorAdapter: $it") }
+
 }
