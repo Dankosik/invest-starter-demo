@@ -30,6 +30,9 @@ import io.github.dankosik.starter.invest.processor.marketdata.OrderBookStreamPro
 import io.github.dankosik.starter.invest.processor.marketdata.TradeStreamProcessorAdapterFactory
 import io.github.dankosik.starter.invest.processor.marketdata.TradingStatusStreamProcessorAdapterFactory
 import io.github.dankosik.starter.invest.processor.marketdata.common.MarketDataStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.operation.PortfolioStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.operation.PositionsStreamProcessorAdapterFactory
+import io.github.dankosik.starter.invest.processor.order.OrdersStreamProcessorAdapterFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -188,7 +191,7 @@ class CommonBeforeEachCandleHandler : CoroutineCandleHandler {
 subscriptionInterval нужен чтобы выбрать интервал который будет обрабатывать этот хендлер
  */
 @HandleAllCandles(
-    tickers = ["CRH4", "BRF4", "SBER", "LKOH"],
+    tickers = ["CRH4", "BRG4", "SBER", "LKOH"],
     subscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
 )
 class CommonAfterEachCandleHandler : CoroutineCandleHandler {
@@ -288,7 +291,7 @@ class Configuration {
     /**Можно обрабатывать все события marketData */
     @Bean
     fun coroutineMarketDataStreamProcessorAdapter() = MarketDataStreamProcessorAdapterFactory
-        .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+        .withTickers(listOf("CRH4", "BRG4", "SBER", "LKOH"))
 //        .withFigies(listOf("BBG004730N88")) можно использовать вместо withTickers
 //        .withInstrumentUids(listOf("e6123145-9665-43e0-8413-cd61b8aa9b13")) можно использовать вместо withTickers
 //        .runAfterEachTradeHandler(true)  опционально
@@ -303,21 +306,21 @@ class Configuration {
         LastPriceStreamProcessorAdapterFactory
 //            .runAfterEachLastPriceHandler(true) опционально
 //            .runBeforeEachLastPriceHandler(true) опционально
-            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .withTickers(listOf("CRH4", "BRG4", "SBER", "LKOH"))
             .createCoroutineHandler { println("LastPriceStreamProcessorAdapterFactory: $it") }
 
     /**Аналог HandleAllTrades */
     @Bean
     fun coroutineTradeStreamProcessorAdapter() =
         TradeStreamProcessorAdapterFactory
-            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .withTickers(listOf("CRH4", "BRG4", "SBER", "LKOH"))
             .createCoroutineHandler { println("CoroutineTradeStreamProcessorAdapter $it") }
 
     /**Аналог HandleAllTradingStatuses */
     @Bean
     fun coroutineTradingStatusStreamProcessorAdapter() =
         TradingStatusStreamProcessorAdapterFactory
-            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .withTickers(listOf("CRH4", "BRG4", "SBER", "LKOH"))
             .createCoroutineHandler { println("coroutineTradingStatusStreamProcessorAdapter $it") }
 
     /**Аналог HandleAllCandles */
@@ -326,14 +329,35 @@ class Configuration {
         CandleStreamProcessorAdapterFactory
             .withSubscriptionInterval(SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE)
             .waitClose(true)
-            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .withTickers(listOf("CRH4", "BRG4", "SBER", "LKOH"))
             .createCoroutineHandler { println("CoroutineCandleStreamProcessorAdapter $it") }
 
     /**Аналог HandleAllOrderBooks */
     @Bean
     fun coroutineOrderBookStreamProcessorAdapter() =
         OrderBookStreamProcessorAdapterFactory
-            .withTickers(listOf("CRH4", "BRF4", "SBER", "LKOH"))
+            .withTickers(listOf("CRH4", "BRG4", "SBER", "LKOH"))
             .createCoroutineHandler { println("CoroutineOrderBookStreamProcessorAdapter: $it") }
 
+    /**Аналог HandleAllPortfolios */
+    @Bean
+    fun coroutinePortfolioStreamProcessorAdapter() =
+        PortfolioStreamProcessorAdapterFactory
+            .withAccounts(listOf("accountId1", "accountId2"))
+            .createCoroutineHandler { println("CoroutinePortfolioStreamProcessorAdapter: $it") }
+
+    /**Аналог HandleAllPositions */
+    @Bean
+    fun coroutinePositionsStreamProcessorAdapter() =
+        PositionsStreamProcessorAdapterFactory
+            .withAccounts(listOf("accountId1", "accountId2"))
+            .createCoroutineHandler { println("CoroutinePositionsStreamProcessorAdapter: $it") }
+
+    /**Аналог HandleAllOrders */
+    @Bean
+    fun coroutineOrdersStreamProcessorAdapter() =
+        OrdersStreamProcessorAdapterFactory
+            .withTickers(listOf("SBER"))
+            .withAccounts(listOf("accountId1", "accountId2"))
+            .createCoroutineHandler { println("CoroutineOrdersStreamProcessorAdapter: $it") }
 }
